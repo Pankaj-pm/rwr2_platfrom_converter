@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:platfrom_converter/provider/base_provider.dart';
 import 'package:platfrom_converter/provider/setting_provider.dart';
+import 'package:platfrom_converter/util/constant.dart';
+import 'package:platfrom_converter/view/chat_view.dart';
 import 'package:platfrom_converter/view/home_page.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 late SharedPreferences preferences;
 
 void main() async {
+
   WidgetsFlutterBinding.ensureInitialized();
   preferences = await SharedPreferences.getInstance();
   runApp(MyApp());
@@ -22,6 +25,11 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  Map<String, WidgetBuilder> routes = {
+    Navigator.defaultRouteName: (context) => HomePage(),
+    routeChatView: (context) => ChatView(),
+  };
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -35,13 +43,15 @@ class _MyAppState extends State<MyApp> {
             debugShowCheckedModeBanner: false,
             theme: ThemeData.light(useMaterial3: true),
             darkTheme: ThemeData.dark(useMaterial3: true),
-            themeMode: Provider.of<BaseProvider>(context).isDart?ThemeMode.dark:ThemeMode.light,
-            home: HomePage(),
+            themeMode: Provider.of<BaseProvider>(context).isDart ? ThemeMode.dark : ThemeMode.light,
+            routes: routes,
           );
         } else {
           return CupertinoApp(
             debugShowCheckedModeBanner: false,
-            home: HomePage(),
+            theme: MaterialBasedCupertinoThemeData(
+                materialTheme: Provider.of<BaseProvider>(context).isDart ? ThemeData.dark() : ThemeData.light()),
+            routes: routes,
           );
         }
       },

@@ -1,6 +1,8 @@
 // ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:platfrom_converter/provider/base_provider.dart';
@@ -33,6 +35,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
+    Provider.of<BaseProvider>(context, listen: false).internetListener();
     auth.isDeviceSupported().then((value) {
       isAuthSupport = value;
       setState(() {});
@@ -50,7 +53,12 @@ class _HomePageState extends State<HomePage> {
             initialIndex: 1,
             child: Scaffold(
               appBar: AppBar(
-                title: Text("Platform  Converter"),
+                title: StreamBuilder<ConnectivityResult>(
+                  stream: Provider.of<BaseProvider>(context).stream,
+                  builder: (context, snapshot) {
+                    return Text("${snapshot.data}");
+                  },
+                ),
                 actions: [
                   Switch(
                     value: platformProvider.isAndroid,
@@ -59,16 +67,43 @@ class _HomePageState extends State<HomePage> {
                     },
                   ),
                 ],
-                bottom: TabBar(tabs: [
-                  Tab(icon: Icon(Icons.account_box)),
-                  Tab(text: "Chats"),
-                  Tab(text: "Calls"),
-                  Tab(text: "Setting"),
-                ]),
+                bottom: TabBar(
+                  indicatorSize: TabBarIndicatorSize.label,
+                  tabs: [
+                    Tab(icon: Icon(Icons.account_box)),
+                    Tab(text: "Chats"),
+                    Tab(text: "Calls"),
+                    Tab(text: "Setting"),
+                  ],
+                ),
               ),
-              body: TabBarView(children: tabsList),
+              bottomSheet: Consumer<BaseProvider>(
+                builder: (context, value, child) {
+                  if (value.connectivityResult == ConnectivityResult.none) {
+                    return Container(
+                      color: Colors.red,
+                      width: double.infinity,
+                      height: 30,
+                      alignment: Alignment.center,
+                      child: Text(
+                        "No Internet Connection",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  } else {
+                    return SizedBox();
+                  }
+                },
+              ),
+              body: TabBarView(
+                physics: NeverScrollableScrollPhysics(),
+                // dragStartBehavior: DragStartBehavior.down,
+                children: tabsList,
+              ),
               floatingActionButton: FloatingActionButton(
-                onPressed: () async {},
+                onPressed: () {
+                  Provider.of<BaseProvider>(context, listen: false).checkInternet();
+                },
                 child: Icon(Icons.add),
               ),
             ),
